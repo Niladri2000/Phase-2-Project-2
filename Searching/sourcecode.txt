@@ -1,0 +1,111 @@
+Sourcecode:
+
+DB Configuration:
+
+package com.fetchdata.servlet;
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
+
+public class DBConfig {
+
+	
+	public static Connection getConnection(Properties props) {
+		
+		
+		Connection connection=null;
+		
+		try {
+			//get url,username,password
+		String driver= props.getProperty("driver");
+		String url= props.getProperty("url");
+		String username= props.getProperty("username");
+		String password= props.getProperty("password");
+		
+		//to load driver
+			Class.forName(driver);
+			
+			try {
+				connection= DriverManager.getConnection(url, username, password);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return connection;
+	}
+	
+}
+
+Fetch Data:
+
+package com.fetchdata.servlet;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.Properties;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class Search
+ */
+@WebServlet("/fetchservlet")
+public class fetchservlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		// TODO Auto-generated method stub
+		String name= request.getParameter("name");
+		PrintWriter out = response.getWriter();
+		Properties props = new Properties();
+		response.setContentType("text/html");
+		
+		
+		InputStream in = getServletContext().getResourceAsStream("/WEB-INF/application.properties");
+		props.load(in);
+
+		Connection conn = DBConfig.getConnection(props);
+
+		if (conn != null) {
+			out.print("Connection is Established");
+			
+			try {
+				PreparedStatement stmt=conn.prepareStatement("select * from eproduct where name = ?");
+				stmt.setString(1,name);
+				ResultSet rs= stmt.executeQuery();
+				ResultSetMetaData rsmd=rs.getMetaData();
+				out.print("<table width=25% border=1>");
+
+                out.print("<center><h1>Result:</h1></center>");
+
+
+                 while(rs.next())
+
+                    {
+
